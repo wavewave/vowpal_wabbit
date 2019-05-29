@@ -751,15 +751,50 @@ void setup_example(vw& all, example* ae)
 
   if(all.ngram_strings.size() > 0)
     generateGrams(all, ae);
+  
+  cerr << "in setup_example:before add_constant" << endl;
+  for ( auto fs = ae->begin() ; fs != ae->end() ; ++fs ) { 
+    for (auto f : (*fs) ) {
+      cerr << f.index() << ":" << f.value() << " ";
+    }
+	   
+    cerr << endl; // << (f.features()) << endl;
+  }
+  cerr.flush();
 
+  
   if (all.add_constant)//add constant feature
     VW::add_constant_feature(all,ae);
 
+  cerr << "in setup_example:after add_constant" << endl;
+  for ( auto fs = ae->begin() ; fs != ae->end() ; ++fs ) { 
+    for (auto f : (*fs) ) {
+      cerr << f.index() << ":" << f.value() << " ";
+    }
+	   
+    cerr << endl; // << (f.features()) << endl;
+  }
+  cerr.flush();
+
+  
   if(all.limit_strings.size() > 0)
     feature_limit(all,ae);
 
   uint64_t multiplier = (uint64_t)all.wpp << all.weights.stride_shift();
 
+  cerr << "in setup_example:before multiplier" << endl;
+  cerr << "multiplier = " << multiplier << endl;
+  for ( auto fs = ae->begin() ; fs != ae->end() ; ++fs ) { 
+    for (auto f : (*fs) ) {
+      cerr << f.index() << ":" << f.value() << " ";
+    }
+	   
+    cerr << endl; // << (f.features()) << endl;
+  }
+  cerr.flush();
+  
+  
+  
   if(multiplier != 1) //make room for per-feature information.
     for (features& fs : *ae)
       for (auto& j : fs.indicies)
@@ -771,11 +806,38 @@ void setup_example(vw& all, example* ae)
     ae->total_sum_feat_sq += fs.sum_feat_sq;
   }
 
+  cerr << "in setup_example:after multiplier" << endl;
+  for ( auto fs = ae->begin() ; fs != ae->end() ; ++fs ) { 
+    for (auto f : (*fs) ) {
+      cerr << f.index() << ":" << f.value() << " ";
+    }
+	   
+    cerr << endl; // << (f.features()) << endl;
+  }
+  cerr.flush();
+
+  
   size_t new_features_cnt;
   float new_features_sum_feat_sq;
   INTERACTIONS::eval_count_of_generated_ft(all, *ae, new_features_cnt, new_features_sum_feat_sq);
   ae->num_features += new_features_cnt;
   ae->total_sum_feat_sq += new_features_sum_feat_sq;
+
+  cerr << "in setup_example" << endl;
+  for( auto l : ae->l.cs.costs ) {
+    cerr << "(l.class_index=" << l.class_index << ", l.x=" << l.x << ") ";
+  }
+  cerr << endl;
+  for ( auto fs = ae->begin() ; fs != ae->end() ; ++fs ) {
+    for (auto f : (*fs) ) {
+      cerr << f.index() << ":" << f.value() << " ";
+    }
+	   
+    cerr << endl; // << (f.features()) << endl;
+  }
+  cerr.flush();
+
+  
 }
 }
 

@@ -75,8 +75,71 @@ CB::cb_class get_observed_cost(v_array<example*>& examples)
 }
 
 void learn_IPS(cb_adf& mydata, base_learner& base, v_array<example*>& examples)
-{ gen_cs_example_ips(examples, mydata.cs_labels);
+{
+  cout << "learn_IPS" << endl;
+  for( auto prepped_l : mydata.prepped_cs_labels ) {
+    for( auto pl : prepped_l.costs ) {
+      cout << "(pl.class_index=" << pl.class_index << ", pl.x=" << pl.x << ") ";
+    }
+    cout << endl;
+  }
+  cout << endl;
+
+  gen_cs_example_ips(examples, mydata.cs_labels);
+
+  cout << "==learn_IPS 1==" << endl;
+  for( auto l : mydata.cs_labels.costs ) {
+    cout << "(l.class_index=" << l.class_index << ", l.x=" << l.x << ") ";
+  }
+  cout << endl;
+  for( auto prepped_l : mydata.prepped_cs_labels ) {
+    for( auto pl : prepped_l.costs ) {
+      cout << "(pl.class_index=" << pl.class_index << ", pl.x=" << pl.x << ") ";
+    }
+    cout << endl;
+  }
+  cout << endl;
+  
+  for( auto l : mydata.cb_labels ) {
+    cout << "----" << endl;
+    for( auto c: l.costs ) {
+      cout << "(c.action=" << c.action << ", c.cost=" << c.cost << ", c.prob=" << c.probability << ") ";
+    }
+  }
+    cout << endl;
+
+
+    cout << "mydata.offset=" << mydata.offset << endl;
+    cout.flush();
+  
   call_cs_ldf<true>(base, examples, mydata.cb_labels, mydata.cs_labels, mydata.prepped_cs_labels, mydata.offset);
+
+  cout << "==learn_IPS 2==" << endl;
+  for( auto l : mydata.cs_labels.costs ) {
+    cout << "(l.class_index=" << l.class_index << ", l.x=" << l.x << ") ";
+  }
+  cout << endl;
+
+  for( auto prepped_l : mydata.prepped_cs_labels ) {
+    for( auto pl : prepped_l.costs ) {
+      cout << "(pl.class_index=" << pl.class_index << ", pl.x=" << pl.x << ") ";
+    }
+    cout << endl;
+  }
+  cout << endl;
+  
+  for( auto l : mydata.cb_labels ) {
+    cout << "----" << endl;
+    for( auto c: l.costs ) {
+      cout << "(c.action=" << c.action << ", c.cost=" << c.cost << ", c.prob=" << c.probability << ") ";
+    }
+  }
+    cout << endl;
+
+  
+  cout.flush();
+
+
 }
 
 void learn_DR(cb_adf& mydata, base_learner& base, v_array<example*>& examples)
@@ -135,7 +198,40 @@ bool test_adf_sequence(cb_adf& data)
 
 template <bool is_learn>
 void do_actual_learning(cb_adf& data, base_learner& base)
-{ data.gen_cs.known_cost = get_observed_cost(data.ec_seq);//need to set for test case
+{
+  cout << "do_actual_learning:" << endl;
+  cout.flush();
+
+  cout << "do_actual_learning: ec_seq = " << data.ec_seq << endl ;
+  
+  for ( auto p : data.ec_seq ) {
+    cout << "---" << endl;
+    for( auto l : p->l.cs.costs ) {
+      cout << "(l.class_index=" << l.class_index << ", l.x=" << l.x << ") ";
+    }
+    cout << endl;
+    
+    for ( auto fs = p->begin() ; fs != p->end() ; ++fs ) {
+      cout << "fs.index=" << (unsigned int) fs.index() << " ::: " ;
+      for (auto f : (*fs) ) {
+        cout << f.index() << ":" << f.value() << " ";
+      }
+	   
+      cout<< endl; // << (f.features()) << endl;
+    }
+  }
+
+  cout << "==before==" << endl;
+  for( auto l : data.cb_labels ) {
+    cout << "----" << endl;
+    for( auto c: l.costs ) {
+      cout << "(c.action=" << c.action << ", c.cost=" << c.cost << ", c.prob=" << c.probability << ") ";
+    }
+  }
+  cout << endl;
+  cout.flush();
+    
+  data.gen_cs.known_cost = get_observed_cost(data.ec_seq);//need to set for test case
   if (is_learn && !test_adf_sequence(data))
   { /*	v_array<float> temp_scores;
     temp_scores = v_init<float>();
@@ -171,6 +267,9 @@ void do_actual_learning(cb_adf& data, base_learner& base)
   { gen_cs_test_example(data.ec_seq, data.cs_labels);//create test labels.
     call_cs_ldf<false>(base, data.ec_seq, data.cb_labels, data.cs_labels, data.prepped_cs_labels, data.offset);
   }
+
+
+  
 }
 
 void global_print_newline(vw& all)
@@ -279,8 +378,17 @@ void clear_seq_and_finish_examples(vw& all, cb_adf& data)
 }
 
 void finish_multiline_example(vw& all, cb_adf& data, example& ec)
-{ if (data.need_to_clear)
-  { if (data.ec_seq.size() > 0)
+{
+  cout << "finish_multiline_example is called" << endl;
+  cout.flush();
+
+  if (data.need_to_clear)
+  {
+    cout << "data.need_to_clear /= 0" << endl;
+    cout.flush();
+
+
+    if (data.ec_seq.size() > 0)
     { output_example_seq(all, data);
       global_print_newline(all);
     }
@@ -309,22 +417,52 @@ void finish(cb_adf& data)
 
 template <bool is_learn>
 void predict_or_learn(cb_adf& data, base_learner& base, example &ec)
-{ vw* all = data.all;
+{
+  cout << "predict_or_learn:" << endl;
+  cout.flush();
+  vw* all = data.all;
   bool is_test_ec = CB::example_is_test(ec);
   bool need_to_break = VW::is_ring_example(*all, &ec) && (data.ec_seq.size() >= all->p->ring_size - 2);
+  cout << "predict_or_learn: need_to_break = " << need_to_break << endl;
+  cout.flush();
+  
   data.offset = ec.ft_offset;
 
   if ((example_is_newline_not_header(ec) && is_test_ec) || need_to_break)
-  { data.ec_seq.push_back(&ec);
+  {
+    //cout << "predict_or_learn: check1" << endl;
+    //cout.flush();
+    cout.flush();
+    
+
+    data.ec_seq.push_back(&ec);
     do_actual_learning<is_learn>(data, base);
     // using flag to clear, because ec_seq is used in finish_example
     data.need_to_clear = true;
   }
   else
-  { if (data.need_to_clear)    // should only happen if we're NOT driving
+  {
+    //cout << "predict_or_learn: check2" << endl;
+    //cout.flush();
+
+
+    if (data.need_to_clear)    // should only happen if we're NOT driving
     { data.ec_seq.erase();
       data.need_to_clear = false;
     }
+    cout << "predict_or_learn: ec_seq = " << data.ec_seq << endl ;
+    for ( auto p : data.ec_seq ) {
+      for ( auto fs = p->begin() ; fs != p->end() ; ++fs ) { 
+        //cout << "index=" << (unsigned int)(f.index()) << "::";
+        //for (
+        for (auto f : (*fs) ) {
+          cout << f.index() << ":" << f.value() << " ";
+        }
+	   
+        cout<< endl; // << (f.features()) << endl;
+      }
+    }
+    
     data.ec_seq.push_back(&ec);
   }
 }

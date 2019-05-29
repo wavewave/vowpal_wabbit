@@ -238,7 +238,30 @@ void gen_cs_example(cb_to_cs_adf& c, v_array<example*>& ec_seq, COST_SENSITIVE::
 template<bool is_learn>
 void call_cs_ldf(LEARNER::base_learner& base, v_array<example*>& examples, v_array<CB::label>& cb_labels,
                  COST_SENSITIVE::label& cs_labels, v_array<COST_SENSITIVE::label>& prepped_cs_labels, uint64_t offset, size_t id = 0)
-{ cb_labels.erase();
+{
+
+  std::cout << "call_cs_ldf:" << std::endl;
+  for ( auto p : examples ) {
+    std::cout << "---" << std::endl;
+    for( auto l : p->l.cs.costs ) {
+      std::cout << "(l.class_index=" << l.class_index << ", l.x=" << l.x << ") ";
+    }
+    std::cout << std::endl;
+    
+    for ( auto fs = p->begin() ; fs != p->end() ; ++fs ) {
+      std::cout << "fs.index=" << (unsigned int) fs.index() << " ::: " ;
+      for (auto f : (*fs) ) {
+	std::cout << f.index() << ":" << f.value() << " ";
+      }
+	   
+      std::cout<< std::endl;
+    }
+  }
+  std::cout << "==========call_cs_ldf:" << std::endl;  
+  std::cout.flush();
+
+
+  cb_labels.erase();
   if (prepped_cs_labels.size() < cs_labels.costs.size()+1)
   { prepped_cs_labels.resize(cs_labels.costs.size()+1);
     prepped_cs_labels.end() = prepped_cs_labels.end_array;
@@ -261,8 +284,13 @@ void call_cs_ldf(LEARNER::base_learner& base, v_array<example*>& examples, v_arr
   for (example* ec : examples)
   { uint64_t old_offset = ec->ft_offset;
     ec->ft_offset = offset;
-    if (is_learn)
+    if (is_learn) {
+      std::cout << "======= CALL LEARN ==============" << std::endl;
+      std::cout.flush();
       base.learn(*ec, id);
+      std::cout << "======= AFTER LEARN ==============" << std::endl;
+      std::cout.flush();
+    }
     else
       base.predict(*ec, id);
     ec->ft_offset = old_offset;

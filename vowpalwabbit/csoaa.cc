@@ -46,6 +46,9 @@ inline void inner_loop(base_learner& base, example& ec, uint32_t i, float cost,
 template <bool is_learn>
 void predict_or_learn(csoaa& c, base_learner& base, example& ec)
 { //cerr << "------------- passthrough" << endl;
+
+  cout << "CSOAA::predict_or_learn" << endl;
+  cout.flush();
   COST_SENSITIVE::label ld = ec.l.cs;
   uint32_t prediction = 1;
   float score = FLT_MAX;
@@ -696,7 +699,9 @@ void finish(ldf& data)
 
 template <bool is_learn>
 void predict_or_learn(ldf& data, base_learner& base, example &ec)
-{ vw* all = data.all;
+{
+  cout << "LDF::predict_or_learn" << endl;
+  vw* all = data.all;
   data.ft_offset = ec.ft_offset;
   bool is_test_ec = COST_SENSITIVE::example_is_test(ec);
   bool need_to_break = data.ec_seq.size() >= all->p->ring_size - 2;

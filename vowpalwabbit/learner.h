@@ -116,7 +116,8 @@ public:
 
   //called once for each example.  Must work under reduction.
   inline void learn(example& ec, size_t i=0)
-  { ec.ft_offset += (uint32_t)(increment*i);
+  {
+    ec.ft_offset += (uint32_t)(increment*i);
     learn_fd.learn_f(learn_fd.data, *learn_fd.base, ec);
     ec.ft_offset -= (uint32_t)(increment*i);
   }
@@ -199,7 +200,12 @@ public:
 
   //called after parsing of examples is complete.  Autorecursive.
   void end_examples()
-  { end_examples_fd.func(end_examples_fd.data);
+  {
+    std::cout << "learner::end_examples" << std::endl;
+    std::cout.flush();
+
+
+    end_examples_fd.func(end_examples_fd.data);
     if (end_examples_fd.base) end_examples_fd.base->end_examples();
   }
   void set_end_examples(void (*f)(T&))

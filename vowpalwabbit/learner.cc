@@ -59,8 +59,18 @@ template <class T, void(*f)(T, example*)> void generic_driver(vw& all, T context
 { example* ec = nullptr;
 
   while ( all.early_terminate == false )
-    if ((ec = VW::get_example(all.p)) != nullptr)
+    if ((ec = VW::get_example(all.p)) != nullptr) {
+      cout << "in generic_driver:" << endl;
+      for ( auto xs = ec->begin() ; xs != ec->end() ; ++xs ) { 
+        for (auto x : (*xs) ) {
+          cout << x.index() << ":" << x.value() << " ";
+        }
+        cout<< endl;
+      }
+      cout.flush();
+      
       f(context, ec);
+    }
     else
       break;
   if (all.early_terminate) //drain any extra examples from parser.

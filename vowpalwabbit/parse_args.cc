@@ -234,6 +234,17 @@ void parse_dictionary_argument(vw&all, string str)
       continue;
     }
     features* arr = new features;
+
+    cout << "in parse_args: " << endl;
+    for (auto f : *arr ) {
+      cout << f.index() << ":" << f.value() << " ";
+    }
+    cout<< endl; // << (f.features()) << endl;
+    cout << "---- parse_args" << endl;
+    cout.flush();
+     
+
+    
     arr->deep_copy_from(ec->feature_space[def]);
     map->put(ss, hash, arr);
 
