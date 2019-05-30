@@ -349,11 +349,73 @@ void do_actual_learning_oaa(ldf& data, base_learner& base, size_t start_K)
     }
     ec->l.simple = simple_label;
 
+    
     // learn
     LabelDict::add_example_namespace_from_memory(data.label_features, *ec, costs[0].class_index);
+
+    cout << "--- k = " << k << "-----------------------------------" << endl;
+    cout << "LDF::do_actual_learning_oaa, label_features" << endl;
+    cout << "label_features.dat.size=" << data.label_features.dat.size() << endl;
+    
+    for( auto l : data.label_features.dat ) {
+      cout << "l.hash=" << l.hash << ", l.key=" << l.key;
+      cout << ", l.val=" ; 
+      for ( auto f : l.val ) {
+	cout << f.index() << ":" << f.value() << " " ; 
+      }
+      cout << endl;
+    }
+    
     uint64_t old_offset = ec->ft_offset;
     ec->ft_offset = data.ft_offset;
+
+    cout << "LDF::do_actual_learning_oaa, ec->l.simple (BEFORE LEARN)"
+         << ", label="   << ec->l.simple.label
+	 << ", weight="  << ec->l.simple.weight
+	 << ", initial=" << ec->l.simple.initial
+	 << endl;
+    cout << "ec->loss=" << ec->loss << endl;
+    cout << "ec->weight=" << ec->weight << endl;
+    cout << "ec->pred.scalar=" << ec->pred.scalar << endl;
+    cout << "data.all->weights.sparse = " << data.all->weights.sparse << endl;    
+    cout << "data.all->weights.sparse_weights" << endl;
+    for( auto w : data.all->weights.sparse_weights ) {
+      if( w != 0 ) 
+        cout << w << " "; 
+    }
+    cout << endl;
+    cout << "data.all->weights.dense_weights" << endl;
+    for( auto w : data.all->weights.dense_weights ) {
+      if( w != 0 ) 
+         cout << w << " "; 
+    }
+    cout << endl;    
+
+    
     base.learn(*ec);
+    cout << "LDF::do_actual_learning_oaa, ec->l.simple (AFTER LEARN)"
+         << ", label="   << ec->l.simple.label
+	 << ", weight="  << ec->l.simple.weight
+	 << ", initial=" << ec->l.simple.initial
+	 << endl;    
+    cout << "ec->loss=" << ec->loss << endl;
+    cout << "ec->weight=" << ec->weight << endl;
+    cout << "ec->pred.scalar=" << ec->pred.scalar << endl;
+    cout << "data.all->weights.sparse = " << data.all->weights.sparse << endl;
+    cout << "data.all->weights.sparse_weights" << endl;
+    for( auto w : data.all->weights.sparse_weights ) {
+      if( w != 0 ) 
+        cout << w << " "; 
+    }
+    cout << endl;    
+    cout << "data.all->weights.dense_weights" << endl;
+    for( auto w : data.all->weights.dense_weights ) {
+      if( w != 0 ) 
+        cout << w << " "; 
+    }
+    cout << endl;    
+
+
     ec->ft_offset = old_offset;
     LabelDict::del_example_namespace_from_memory(data.label_features, *ec, costs[0].class_index);
     ec->weight = old_weight;
