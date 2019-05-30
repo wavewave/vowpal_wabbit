@@ -8,7 +8,10 @@ struct scorer { vw* all; }; // for set_minmax, loss
 
 template <bool is_learn, float (*link)(float in)>
 void predict_or_learn(scorer& s, LEARNER::base_learner& base, example& ec)
-{ s.all->set_minmax(s.all->sd, ec.l.simple.label);
+{
+  cout << "SCORER::predict_or_learn" << endl;
+
+  s.all->set_minmax(s.all->sd, ec.l.simple.label);
   if (is_learn && ec.l.simple.label != FLT_MAX && ec.weight > 0)
     base.learn(ec);
   else
@@ -52,6 +55,8 @@ LEARNER::base_learner* scorer_setup(vw& all)
   s.all = &all;
 
   LEARNER::base_learner* base = setup_base(all);
+
+  cout << "SCORE base = " << base << endl;
   LEARNER::learner<scorer>* l;
   void (*multipredict_f)(scorer&, LEARNER::base_learner&, example&, size_t, size_t, polyprediction*, bool) = multipredict<id>;
 
@@ -82,5 +87,6 @@ LEARNER::base_learner* scorer_setup(vw& all)
   l->set_update(update);
   all.scorer = make_base(*l);
 
+  cout << "SCORER self = " << all.scorer << endl;
   return all.scorer;
 }

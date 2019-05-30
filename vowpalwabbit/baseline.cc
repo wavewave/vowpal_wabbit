@@ -168,9 +168,12 @@ base_learner* baseline_setup(vw& all)
   data.global_only = all.vm.count("global_only") > 0; // initialization done later
 
   base_learner* base = setup_base(all);
+  cout << "BASELINE base = " << base << endl; 
   learner<baseline>& l = init_learner(&data, base, predict_or_learn<true>, predict_or_learn<false>);
 
   l.set_finish(finish);
 
-  return make_base(l);
+  base_learner* self = make_base(l);
+  cout << "BASELINE self = " << self << endl;   
+  return self;
 }

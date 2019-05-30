@@ -38,7 +38,11 @@ bool know_all_cost_example(CB::label& ld)
 
 template <bool is_learn>
 void predict_or_learn(cb& data, base_learner& base, example& ec)
-{ CB::label ld = ec.l.cb;
+{
+  cout << "CB_ALGS::predict_or_learn" << endl;
+  cout.flush();
+
+  CB::label ld = ec.l.cb;
 
   cb_to_cs& c = data.cbcs;
   c.known_cost = get_observed_cost(ld);

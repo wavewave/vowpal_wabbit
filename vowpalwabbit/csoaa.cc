@@ -256,7 +256,8 @@ bool test_ldf_sequence(ldf& data, size_t start_K)
 }
 
 void do_actual_learning_wap(ldf& data, base_learner& base, size_t start_K)
-{ size_t K = data.ec_seq.size();
+{
+  size_t K = data.ec_seq.size();
   vector<COST_SENSITIVE::wclass*> all_costs;
   for (size_t k=start_K; k<K; k++)
     all_costs.push_back(&data.ec_seq[k]->l.cs.costs[0]);
@@ -309,7 +310,10 @@ void do_actual_learning_wap(ldf& data, base_learner& base, size_t start_K)
 }
 
 void do_actual_learning_oaa(ldf& data, base_learner& base, size_t start_K)
-{ size_t K = data.ec_seq.size();
+{
+  cout << "LDF::do_actual_learning_oaa" << endl;
+  cout.flush();
+  size_t K = data.ec_seq.size();
   float  min_cost  = FLT_MAX;
   float  max_cost  = -FLT_MAX;
 
@@ -362,7 +366,31 @@ void do_actual_learning_oaa(ldf& data, base_learner& base, size_t start_K)
 
 template <bool is_learn>
 void do_actual_learning(ldf& data, base_learner& base)
-{ if (data.ec_seq.size() <= 0) return;  // nothing to do
+{
+  cout << "LDF::do_actual_learning" << endl;
+
+  cout << "ec_seq = " << data.ec_seq << endl ;
+  
+  for ( auto p : data.ec_seq ) {
+    cout << "---" << endl;
+    for( auto l : p->l.cs.costs ) {
+      cout << "(l.class_index=" << l.class_index << ", l.x=" << l.x << ") ";
+    }
+    cout << endl;
+    
+    for ( auto fs = p->begin() ; fs != p->end() ; ++fs ) {
+      cout << "fs.index=" << (unsigned int) fs.index() << " ::: " ;
+      for (auto f : (*fs) ) {
+        cout << f.index() << ":" << f.value() << " ";
+      }
+	   
+      cout<< endl;
+    }
+  }
+  
+  cout.flush();
+
+  if (data.ec_seq.size() <= 0) return;  // nothing to do
   /////////////////////// handle label definitions
 
   if (ec_seq_is_label_definition(data.ec_seq))
@@ -708,12 +736,17 @@ void predict_or_learn(ldf& data, base_learner& base, example &ec)
 
   // singleline is used by library/ezexample_predict
   if (data.is_singleline)
-  { assert(is_test_ec); // Only test examples are supported with singleline
+  {
+    cout << "LDF::predict_or_learn, singleline" << endl;
+
+    assert(is_test_ec); // Only test examples are supported with singleline
     assert(ec.l.cs.costs.size() > 0); // headers not allowed with singleline
     make_single_prediction(data, base, ec);
   }
   else if (ec_is_label_definition(ec))
-  { if (data.ec_seq.size() > 0)
+  {
+    cout << "LDF::predict_or_learn, not singleline, (a)" << endl;
+    if (data.ec_seq.size() > 0)
       THROW("error: label definition encountered in data block");
 
     data.ec_seq.push_back(&ec);
@@ -721,13 +754,19 @@ void predict_or_learn(ldf& data, base_learner& base, example &ec)
     data.need_to_clear = true;
   }
   else if ((example_is_newline(ec) && is_test_ec) || need_to_break)
-  { if (need_to_break && data.first_pass)
+  {
+    cout << "LDF::predict_or_learn, not singleline, (b)" << endl;
+
+    if (need_to_break && data.first_pass)
       data.all->trace_message << "warning: length of sequence at " << ec.example_counter << " exceeds ring size; breaking apart" << endl;
     do_actual_learning<is_learn>(data, base);
     data.need_to_clear = true;
   }
   else
-  { if (data.need_to_clear)    // should only happen if we're NOT driving
+  {
+    cout << "LDF::predict_or_learn, not singleline, (c)" << endl;
+
+    if (data.need_to_clear)    // should only happen if we're NOT driving
     { data.ec_seq.erase();
       data.need_to_clear = false;
     }
@@ -828,7 +867,10 @@ base_learner* csldf_setup(vw& all)
 
   ld.read_example_this_loop = 0;
   ld.need_to_clear = false;
-  learner<ldf>& l = init_learner(&ld, setup_base(all), predict_or_learn<true>, predict_or_learn<false>, 1, pred_type);
+  base_learner* base = setup_base(all);
+  cout << "CSLDF base= " << base << endl;
+  cout.flush();
+  learner<ldf>& l = init_learner(&ld, base /* setup_base(all) */, predict_or_learn<true>, predict_or_learn<false>, 1, pred_type);
   if (ld.is_singleline)
     l.set_finish_example(finish_singleline_example);
   else
@@ -837,5 +879,6 @@ base_learner* csldf_setup(vw& all)
   l.set_end_examples(end_examples);
   l.set_end_pass(end_pass);
   all.cost_sensitive = make_base(l);
+  cout << "CS_LDF self = " << all.cost_sensitive << endl;
   return all.cost_sensitive;
 }

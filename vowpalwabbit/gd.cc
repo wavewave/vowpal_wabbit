@@ -572,7 +572,10 @@ void update(gd& g, base_learner&, example& ec)
 
 template<bool sparse_l2, bool invariant, bool sqrt_rate, bool feature_mask_off, size_t adaptive, size_t normalized, size_t spare>
 void learn(gd& g, base_learner& base, example& ec)
-{ //invariant: not a test label, importance weight > 0
+{
+  cout << "GD template learn" << endl;
+
+  //invariant: not a test label, importance weight > 0
   assert(ec.in_use);
   assert(ec.l.simple.label != FLT_MAX);
   assert(ec.weight > 0.);
@@ -1058,7 +1061,9 @@ base_learner* setup(vw& all)
   ret.set_update(g.update);
   ret.set_save_load(save_load);
   ret.set_end_pass(end_pass);
-  return make_base(ret);
+  base_learner *self = make_base(ret);
+  cout << "GD self = " << self << endl;
+  return self;
 }
 
 }

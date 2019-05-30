@@ -560,6 +560,8 @@ base_learner* cb_adf_setup(vw& all)
   }
 
   base_learner* base = setup_base(all);
+  cout << "CB_ADF base = " << base << endl;
+
   all.p->lp = CB::cb_label;
   all.label_type = label_type::cb;
 
@@ -572,5 +574,8 @@ base_learner* cb_adf_setup(vw& all)
   l.set_finish(CB_ADF::finish);
   l.set_end_examples(CB_ADF::end_examples);
   l.set_save_load(CB_ADF::save_load);
-  return make_base(l);
+  base_learner* self =  make_base(l);
+  cout << "CB_ADF self = " << self << endl;
+  
+  return self;
 }
