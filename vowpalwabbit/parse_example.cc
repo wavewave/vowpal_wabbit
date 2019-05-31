@@ -137,6 +137,8 @@ public:
       else
         word_hash = channel_hash + anon++;
       cerr << "word_hash = " << word_hash << endl;
+      cerr << "channel_hash = " << channel_hash << endl;
+      
       cerr.flush();
       cerr << "index = " << (unsigned int)index << endl;
       cerr.flush();
