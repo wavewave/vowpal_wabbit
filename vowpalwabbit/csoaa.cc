@@ -351,9 +351,11 @@ void do_actual_learning_oaa(ldf& data, base_learner& base, size_t start_K)
 
     
     // learn
+    cout << "--- k = " << k << "-----------------------------------" << endl;
+    
+    cout << " costs[0].class_index = " << costs[0].class_index << endl;
     LabelDict::add_example_namespace_from_memory(data.label_features, *ec, costs[0].class_index);
 
-    cout << "--- k = " << k << "-----------------------------------" << endl;
     cout << "LDF::do_actual_learning_oaa, label_features" << endl;
     cout << "label_features.dat.size=" << data.label_features.dat.size() << endl;
     
@@ -391,8 +393,13 @@ void do_actual_learning_oaa(ldf& data, base_learner& base, size_t start_K)
     }
     cout << endl;    
 
+
+    ////////////////////////////////
     
     base.learn(*ec);
+
+    ////////////////////////////////
+
     cout << "LDF::do_actual_learning_oaa, ec->l.simple (AFTER LEARN)"
          << ", label="   << ec->l.simple.label
 	 << ", weight="  << ec->l.simple.weight

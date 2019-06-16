@@ -51,7 +51,12 @@ public:
   }
 
   float getUnsafeUpdate(float prediction, float label, float update_scale)
-  { return 2.f*(label - prediction)*update_scale;
+  {
+    cout << "GETUNSAFEUPDATE: " << endl;
+    cout << "prediction = " << prediction << endl;
+    cout << "label = " << label << endl;
+    cout << "update_scale = " << update_scale << endl;
+    return 2.f*(label - prediction)*update_scale;
   }
 
   float getRevertingWeight(shared_data* sd, float prediction, float eta_t)
@@ -93,7 +98,8 @@ public:
   }
 
   float getUnsafeUpdate(float prediction, float label,float update_scale)
-  { return 2.f*(label - prediction) * update_scale;
+  {
+    return 2.f*(label - prediction) * update_scale;
   }
 
   float getRevertingWeight(shared_data* sd, float prediction, float eta_t)

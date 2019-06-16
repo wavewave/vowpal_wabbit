@@ -433,7 +433,9 @@ const float x2_max = FLT_MAX;
 
 template<bool sqrt_rate, bool feature_mask_off, size_t adaptive, size_t normalized, size_t spare, bool stateless>
 inline void pred_per_update_feature(norm_data& nd, float x, float& fw)
-{ if(feature_mask_off || fw != 0.)
+{
+  cout << "PRED_PER_UPDATE_FEATURE: x = " << x << endl;
+  if(feature_mask_off || fw != 0.)
   { weight* w = &fw;
     float x2 = x * x;
     if (x2 < x2_min)
@@ -477,6 +479,15 @@ bool global_print_features = false;
 template<bool sqrt_rate, bool feature_mask_off, size_t adaptive, size_t normalized, size_t spare, bool stateless>
 float get_pred_per_update(gd& g, example& ec)
 { //We must traverse the features in _precisely_ the same order as during training.
+
+  cout << "INSIDE get_pred_per_update" << endl;
+  cout << "normalized = " << normalized << endl;
+  cout << "adaptive   = " << adaptive   << endl;
+  cout << "spare      = " << spare      << endl;
+  cout << "stateless  = " << stateless  << endl;
+  cout << "sqrt_rate  = " << sqrt_rate  << endl;
+    
+  
   label_data& ld = ec.l.simple;
   vw& all = *g.all;
   float grad_squared = all.loss->getSquareGrad(ec.pred.scalar, ld.label) * ec.weight;
@@ -484,6 +495,9 @@ float get_pred_per_update(gd& g, example& ec)
 
   norm_data nd = {grad_squared, 0., 0., {g.neg_power_t, g.neg_norm_power}};
   foreach_feature<norm_data,pred_per_update_feature<sqrt_rate, feature_mask_off, adaptive, normalized, spare, stateless> >(all, ec, nd);
+
+  cout << endl;
+  
   if(normalized)
   { if(!stateless)
     { g.all->normalized_sum_norm_x += ec.weight * nd.norm_x;
@@ -505,16 +519,23 @@ template<bool sqrt_rate, bool feature_mask_off, size_t adaptive, size_t normaliz
 float sensitivity(gd& g, example& ec)
 { if(adaptive || normalized)
     return get_pred_per_update<sqrt_rate, feature_mask_off, adaptive, normalized, spare, stateless>(g,ec);
-  else
+  else {
+    cout << "SENSITIVITY: total_sum_feat_sq = " << ec.total_sum_feat_sq << endl;
     return ec.total_sum_feat_sq;
+  }
 }
 
 template<size_t adaptive>
 float get_scale(gd& g, example& ec, float weight)
 { float update_scale = g.all->eta * weight;
+    cout << "GET_SCALE, eta*weight = " << update_scale << endl;
+  
   if(!adaptive)
   { float t = (float)(g.all->sd->t+weight - g.all->sd->weighted_holdout_examples);
     update_scale *= powf(t, g.neg_power_t);
+    cout << "GET_SCALE, eta = " << g.all->eta << endl;
+    cout << "GET_SCALE, g.neg_power_t = " << g.neg_power_t << endl;
+    cout << "GET_SCALE, t = " << t << ", weight = " << weight << ", total_weight = " << g.total_weight << endl;        
   }
   return update_scale;
 }
@@ -533,13 +554,17 @@ float compute_update(gd& g, example& ec)
 
   float update = 0.;
   ec.updated_prediction = ec.pred.scalar;
+  cout << "COMPUTE_UPDATE: g.all->sd->t = " << g.all->sd->t << endl;
   if (all.loss->getLoss(all.sd, ec.pred.scalar, ld.label) > 0.)
   { float pred_per_update = sensitivity<sqrt_rate, feature_mask_off, adaptive, normalized, spare, false>(g, ec);
     float update_scale = get_scale<adaptive>(g, ec, ec.weight);
     if(invariant)
       update = all.loss->getUpdate(ec.pred.scalar, ld.label, update_scale, pred_per_update);
-    else
+    else { 
       update = all.loss->getUnsafeUpdate(ec.pred.scalar, ld.label, update_scale);
+      cout << "compute_update:(1) update = " << update << endl;
+      
+    }
     // changed from ec.partial_prediction to ld.prediction
     ec.updated_prediction += pred_per_update * update;
 
@@ -556,6 +581,7 @@ float compute_update(gd& g, example& ec)
   if (sparse_l2)
     update -= g.sparse_l2 * ec.pred.scalar;
 
+  cout << "compute_update:(2) update = " << update << endl;
   return update;
 }
 
