@@ -35,8 +35,8 @@ int read_features_string(vw* all, v_array<example*>& examples)
 { char* line;
   size_t num_chars;
   size_t num_chars_initial = read_features(all, line, num_chars);
-  cerr << "read_features_string start" << endl;
-  cerr.flush();
+  //cerr << "read_features_string start" << endl;
+  //cerr.flush();
 
   if (num_chars_initial < 1)
     return (int)num_chars_initial;
@@ -44,8 +44,8 @@ int read_features_string(vw* all, v_array<example*>& examples)
   substring example = { line, line + num_chars };
   substring_to_example(all, examples[0], example);
 
-  cerr << "read_features_string end" << endl;
-  cerr.flush();
+  //cerr << "read_features_string end" << endl;
+  //cerr.flush();
 
   
   return (int)num_chars_initial;
@@ -126,22 +126,22 @@ public:
     else
     { // maybeFeature --> 'String' FeatureValue
       substring feature_name=read_name();
-      cerr << "feature_name = " << feature_name << endl;
-      cerr.flush();
+      //cerr << "feature_name = " << feature_name << endl;
+      //cerr.flush();
       v = cur_channel_v * featureValue();
-      cerr << "v = " << v << endl;
-      cerr.flush();
+      //cerr << "v = " << v << endl;
+      //cerr.flush();
       uint64_t word_hash;
       if (feature_name.end != feature_name.begin)
         word_hash = (p->hasher(feature_name, channel_hash));
       else
         word_hash = channel_hash + anon++;
-      cerr << "word_hash = " << word_hash << endl;
-      cerr << "channel_hash = " << channel_hash << endl;
+      //cerr << "word_hash = " << word_hash << endl;
+      //cerr << "channel_hash = " << channel_hash << endl;
       
-      cerr.flush();
-      cerr << "index = " << (unsigned int)index << endl;
-      cerr.flush();
+      //cerr.flush();
+      //cerr << "index = " << (unsigned int)index << endl;
+      //cerr.flush();
       
       if(v == 0) return; //dont add 0 valued features to list of features
       features& fs = ae->feature_space[index];
@@ -296,8 +296,8 @@ public:
   { while(*reading_head == ' ' || *reading_head == '\t')
     { //listFeatures --> ' ' MaybeFeature ListFeatures
       ++reading_head;
-      cerr << "---- reading_head ----" << endl << reading_head << endl << "-------------------" << endl;
-      cerr.flush();
+      //cerr << "---- reading_head ----" << endl << reading_head << endl << "-------------------" << endl;
+      //cerr.flush();
       
       maybeFeature();
     }
@@ -353,8 +353,8 @@ public:
 
   TC_parser(char* reading_head, char* endLine, vw& all, example* ae)
   {
-    cerr << "TC_parser start" << endl;
-    cerr.flush();
+    //cerr << "TC_parser start" << endl;
+    //cerr.flush();
     
     spelling = v_init<char>();
     if (endLine != reading_head)
@@ -373,21 +373,21 @@ public:
       if (base != nullptr)
         free(base);
     }
-    cerr << "TC_parser end" << endl;
-    cerr.flush();
+    //cerr << "TC_parser end" << endl;
+    //cerr.flush();
     
   }
 };
 
 void substring_to_example(vw* all, example* ae, substring example)
 {
-  cerr << "substring_to_example start" << endl;
-  cerr.flush();
+  //cerr << "substring_to_example start" << endl;
+  //cerr.flush();
     
   all->p->lp.default_label(&ae->l);
 
-  cerr << "example = " << example << endl;
-  cerr.flush();
+  //cerr << "example = " << example << endl;
+  //cerr.flush();
   
   char* bar_location = safe_index(example.begin, '|', example.end);
   char* tab_location = safe_index(example.begin, '\t', bar_location);
@@ -400,8 +400,8 @@ void substring_to_example(vw* all, example* ae, substring example)
   }
   label_space.end = bar_location;
 
-  cerr << "label_space = " << label_space << endl;
-  cerr.flush();
+  //cerr << "label_space = " << label_space << endl;
+  //cerr.flush();
   
   if (*example.begin == '|')
   { all->p->words.erase();
@@ -417,10 +417,10 @@ void substring_to_example(vw* all, example* ae, substring example)
   }
 
   if (all->p->words.size() > 0) {
-    for( auto p : all->p->words ) {
-      cerr << "size = " << all->p->words.size() << ", p = " << p << endl;
-      cerr.flush();
-    }
+    //for( auto p : all->p->words ) {
+    //  cerr << "size = " << all->p->words.size() << ", p = " << p << endl;
+    //  cerr.flush();
+    //}
     all->p->lp.parse_label(all->p, all->sd, &ae->l, all->p->words);
   }
     
@@ -428,8 +428,8 @@ void substring_to_example(vw* all, example* ae, substring example)
     TC_parser<true> parser_line(bar_location,example.end,*all,ae);
   else
     TC_parser<false> parser_line(bar_location,example.end,*all,ae);
-  cerr << "substring_to_example end" << endl;
-  cerr << "after substring_to_example" << endl;
+  //cerr << "substring_to_example end" << endl;
+  //cerr << "after substring_to_example" << endl;
 
   for ( auto fs = ae->begin() ; fs != ae->end() ; ++fs ) { 
     for (auto f : (*fs) ) {
@@ -446,12 +446,12 @@ namespace VW
 {
 void read_line(vw& all, example* ex, char* line)
 {
-  cerr << "read_line start" << endl;
-  cerr.flush();
+  //cerr << "read_line start" << endl;
+  //cerr.flush();
   substring ss = {line, line+strlen(line)};
   while ((ss.end >= ss.begin) && (*(ss.end-1) == '\n')) ss.end--;
   substring_to_example(&all, ex, ss);
-  cerr << "read_line end" << endl;
-  cerr.flush();
+  //cerr << "read_line end" << endl;
+  //cerr.flush();
 }
 }

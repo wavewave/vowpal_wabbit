@@ -22,7 +22,13 @@ public:
   }
 
   float getLoss(shared_data* sd, float prediction, float label)
-  { if (prediction <= sd->max_label && prediction >= sd->min_label)
+  {
+    //cout << "GETLOSS: " << endl;
+    //cout << "prediction = " << prediction << endl;
+    //cout << "sd->max_label = " << sd->max_label << endl;
+    //cout << "sd->min_label = " << sd->min_label << endl;
+
+    if (prediction <= sd->max_label && prediction >= sd->min_label)
     { float example_loss = (prediction - label) * (prediction - label);
       return example_loss;
     }

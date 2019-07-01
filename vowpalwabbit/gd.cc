@@ -100,9 +100,19 @@ template<bool sqrt_rate, bool feature_mask_off, size_t adaptive, size_t normaliz
 inline void update_feature(float& update, float x, float& fw)
 { weight* w = &fw;
   if(feature_mask_off || fw != 0.)
-  { if (spare != 0)
-      x *= w[spare];
-    w[0] += update * x;
+    { if (spare != 0) {
+	cout << "UPDATE_FEATURE: spare != 0, x(before) = " << x << endl;
+	cout << "UPDATE_FEATURE: spare != 0, w[spare] = " << w[spare] << endl;
+        x *= w[spare];
+	cout << "UPDATE_FEATURE: spare != 0, x(after) = " << x << endl;
+
+      }
+      cout << "UPDATE_FEATURE: w[0](before) = " << w[0] << endl;
+      cout << "UPDATE_FEATURE: update = " << update << endl;
+      cout << "UPDATE_FEATURE: x = " << x << endl;
+      w[0] += update * x;
+      cout << "UPDATE_FEATURE: w[0](after) = " << w[0] << endl;
+
   }
 }
 
@@ -112,9 +122,12 @@ inline void update_feature(float& update, float x, float& fw)
   { if (normalized)
       { if (sqrt_rate)
           { float avg_norm = (float)(total_weight / normalized_sum_norm_x);
+	    cout << "AVERAGE_UPDATE: total_weight = " << total_weight << endl;
+	    cout << "AVERAGE_UPDATE: normalized_sum_norm_x = " << normalized_sum_norm_x << endl;
             if (adaptive)
               return sqrt(avg_norm);
             else
+	      cout << "AVERAGE_UPDATE: avg_norm = " << avg_norm << endl;
               return avg_norm;
           }
         else
@@ -127,6 +140,7 @@ template<bool sqrt_rate, bool feature_mask_off, size_t adaptive, size_t normaliz
 void train(gd& g, example& ec, float update)
 { if (normalized)
     update *= g.update_multiplier;
+  cout << "TRAIN: update (after multiplier) = " << update << endl;
   foreach_feature<float, update_feature<sqrt_rate, feature_mask_off, adaptive, normalized, spare> >(*g.all, ec, update);
 }
 
@@ -342,7 +356,13 @@ void predict(gd& g, base_learner&, example& ec)
     ec.partial_prediction = inline_predict(all, ec);
 
   ec.partial_prediction *= (float)all.sd->contraction;
+  cout << "GD::PREDICT : " << endl;
+  cout << "before finalize_prediction, ec.pred.scalar = " << ec.pred.scalar << endl;
+  cout << "before finalize_prediction, ec.partial_prediction = " << ec.partial_prediction << endl;
+
+
   ec.pred.scalar = finalize_prediction(all.sd, ec.partial_prediction);
+  cout << "after finalize_prediction,  ec.pred.scalar = " << ec.pred.scalar << endl;
   if (audit)
     print_audit_features(all, ec);
 }
@@ -471,6 +491,8 @@ inline void pred_per_update_feature(norm_data& nd, float x, float& fw)
       nd.norm_x += x2 / (w[normalized] * w[normalized]);
     }
     w[spare] = compute_rate_decay<sqrt_rate, adaptive, normalized>(nd.pd, w[0]);
+    cout << "PRED_PER_UPDATE_FEATURE: w[normalized] = " << w[normalized] << endl;
+    cout << "PRED_PER_UPDATE_FEATURE: w[spare] = " << w[spare] << endl;
     nd.pred_per_update += x2 * w[spare];
   }
 }
@@ -486,8 +508,8 @@ float get_pred_per_update(gd& g, example& ec)
   cout << "spare      = " << spare      << endl;
   cout << "stateless  = " << stateless  << endl;
   cout << "sqrt_rate  = " << sqrt_rate  << endl;
-    
-  
+
+
   label_data& ld = ec.l.simple;
   vw& all = *g.all;
   float grad_squared = all.loss->getSquareGrad(ec.pred.scalar, ld.label) * ec.weight;
@@ -496,8 +518,12 @@ float get_pred_per_update(gd& g, example& ec)
   norm_data nd = {grad_squared, 0., 0., {g.neg_power_t, g.neg_norm_power}};
   foreach_feature<norm_data,pred_per_update_feature<sqrt_rate, feature_mask_off, adaptive, normalized, spare, stateless> >(all, ec, nd);
 
-  cout << endl;
-  
+  cout << "GET_PRED_PER_UPDATE: normalized_sum_norm_x(BEFORE) = "
+       << g.all->normalized_sum_norm_x
+       << endl;
+  cout << "GET_PRED_PER_UPDATE: nd.norm_x = " << nd.norm_x << endl;
+  cout << "GET_PRED_PER_UPDATE: ec.weight = " << ec.weight << endl;
+
   if(normalized)
   { if(!stateless)
     { g.all->normalized_sum_norm_x += ec.weight * nd.norm_x;
@@ -529,13 +555,13 @@ template<size_t adaptive>
 float get_scale(gd& g, example& ec, float weight)
 { float update_scale = g.all->eta * weight;
     cout << "GET_SCALE, eta*weight = " << update_scale << endl;
-  
+
   if(!adaptive)
   { float t = (float)(g.all->sd->t+weight - g.all->sd->weighted_holdout_examples);
     update_scale *= powf(t, g.neg_power_t);
     cout << "GET_SCALE, eta = " << g.all->eta << endl;
     cout << "GET_SCALE, g.neg_power_t = " << g.neg_power_t << endl;
-    cout << "GET_SCALE, t = " << t << ", weight = " << weight << ", total_weight = " << g.total_weight << endl;        
+    cout << "GET_SCALE, t = " << t << ", weight = " << weight << ", total_weight = " << g.total_weight << endl;
   }
   return update_scale;
 }
@@ -555,16 +581,23 @@ float compute_update(gd& g, example& ec)
   float update = 0.;
   ec.updated_prediction = ec.pred.scalar;
   cout << "COMPUTE_UPDATE: g.all->sd->t = " << g.all->sd->t << endl;
+  cout << "COMPUTE_UPDATE: ec.weight = " << ec.weight << endl;
+  cout << "COMPUTE_UPDATE: g.total_weight = " << g.total_weight << endl;
+  cout << "COMPUTE_UPDATE: ec.pred.scalar = " << ec.pred.scalar << endl;
+  cout << "COMPUTE_UPDATE: all.loss->getLoss(all.sd, ec.pred.scalar, ld.label) = " << all.loss->getLoss(all.sd, ec.pred.scalar, ld.label)  << endl;
   if (all.loss->getLoss(all.sd, ec.pred.scalar, ld.label) > 0.)
-  { float pred_per_update = sensitivity<sqrt_rate, feature_mask_off, adaptive, normalized, spare, false>(g, ec);
+  {
+    cout << "COMPUTE_UPDATE: I'm here" << endl;
+    float pred_per_update = sensitivity<sqrt_rate, feature_mask_off, adaptive, normalized, spare, false>(g, ec);
     float update_scale = get_scale<adaptive>(g, ec, ec.weight);
     if(invariant)
       update = all.loss->getUpdate(ec.pred.scalar, ld.label, update_scale, pred_per_update);
-    else { 
+    else {
       update = all.loss->getUnsafeUpdate(ec.pred.scalar, ld.label, update_scale);
       cout << "compute_update:(1) update = " << update << endl;
-      
+
     }
+    cout << "COMPUTE_UPDATE: pred_per_update = " << pred_per_update << endl;
     // changed from ec.partial_prediction to ld.prediction
     ec.updated_prediction += pred_per_update * update;
 
